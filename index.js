@@ -3,12 +3,16 @@ const app = express();
 const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
+const engine = require("ejs-mate");
 
-app.set("view engine","ejs");
+
 app.set("views", path.join(__dirname,"views"));
 app.use(express.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
-app.listen(8080);
+app.engine("ejs",engine);
+app.set("view engine","ejs");
+app.use(express.static(path.join(__dirname,"/public")));
+
 
 const mongoose = require("mongoose");
 const MONGO_URL = "mongodb://localhost:27017/wanderlust";
@@ -65,3 +69,7 @@ app.delete("/listings/:id", async (req,res)=>{
     let deletedListing  = await Listing.findByIdAndDelete(id);
     res.redirect("/listings");
 });
+
+
+
+app.listen(8080);
