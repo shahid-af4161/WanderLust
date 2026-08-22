@@ -99,10 +99,10 @@ card-text {
     background-color: #fff;
 }
 
-.add-btn {
+/* .add-btn {
     background-color: #fe424d;
     border: none;
-}
+} */
 
 /* Edit Page */
 .edit-btn {
@@ -111,7 +111,8 @@ card-text {
 
 /* Show page */
 .show-img {
-    height: 30vh;
+    height: 50vh;
+   
 
 }
 
@@ -119,12 +120,13 @@ card-text {
     display: flex;
 }
 
-.dlt-btn {
+/* .dlt-btn {
     background-color: #fe424d;
     border: none;
-}
+} */
 
 .show-card {
     padding-left: 0;
     padding-right: 0;
+    
 }
