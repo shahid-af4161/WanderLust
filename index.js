@@ -6,7 +6,8 @@ const methodOverride = require("method-override");
 const engine = require("ejs-mate");
 const wrapasync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError");
-const { listingSchema } = require("./schema");
+const { listingSchema,reviewSchema } = require("./schema");
+const Review = require("./models/review.js");
 
 
 app.set("views", path.join(__dirname, "views"));
@@ -37,6 +38,16 @@ const validateListing = (req, res, next) =>{
     }
 }
 
+const validateReview = (req, res, next) =>{
+    let {error} = reviewSchema.validate(req.body);
+
+    if(error){
+        let errMsg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(400 , errMsg);
+    } else{
+        next();
+    }
+}
 // Homepage/Listings
 app.get("/listings", wrapAsync( async (req, res) => {
     const allListing = await Listing.find({});
@@ -73,7 +84,7 @@ app.post("/listings",validateListing, wrapAsync(async (req, res, next) => {
 //Show Listing
 app.get("/listings/:id", wrapAsync(async (req, res) => {
     let { id } = req.params;
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id).populate("reviews");
     res.render("./listings/show.ejs", { listing });
 }));
 
@@ -101,9 +112,35 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
     res.redirect("/listings");
 }));
 
+//reviews
+//Post route
+app.post("/listings/:id/reviews",validateReview, wrapAsync(async(req,res)=>{
+  let listing = await  Listing.findById(req.params.id);
+  let newReview = new Review(req.body.review);
+  listing.reviews.push(newReview);
+
+  await newReview.save();
+  await listing.save();
+  console.log("new review saved");
+  res.redirect(`/listings/${listing.id}`);
+}));
+
+//DElete review Route
+app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async(req,res)=>{
+    let {id, reviewId} = req.params;
+
+    await Listing.findByIdAndUpdate(id, {$pull: {reviews: reviewId}});
+    await Review.findByIdAndDelete(reviewId);
+
+    res.redirect(`/listings/${id}`);
+}));
+
 app.all("/*splat", (req, res, next)=>{
     next(new ExpressError(404 , "Page not found"));
 });
+
+
+
 
 // Error handling Middleware : if anyone throw error instead of deafault express error handler it handles error
 app.use((err, req, res, next) => {
